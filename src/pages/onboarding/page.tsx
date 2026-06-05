@@ -1,20 +1,15 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Onboarding() {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [platformEmail, setPlatformEmail] = useState("");
   const [redditConnected, setRedditConnected] = useState(false);
   const [quoraConnected, setQuoraConnected] = useState(false);
 
-  const steps = [
-    { number: 1, label: "Connect" },
-    { number: 2, label: "Accounts" },
-    { number: 3, label: "Configure" },
-    { number: 4, label: "Activate" },
-  ];
-
   const handleNextStep = () => {
     if (step < 4) setStep(step + 1);
+    else navigate("/popup");
   };
 
   const handlePrevStep = () => {
@@ -22,89 +17,144 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center p-4">
-      <div className="w-full max-w-[520px] bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
-        <div className="border-b border-gray-200 px-6 py-4">
-          <h1 className="text-lg font-semibold text-gray-900">Setup Forum Agent</h1>
-          <p className="text-sm text-gray-600 mt-1">Step {step} of 4</p>
-        </div>
+    <div className="min-h-screen bg-white">
+      <div className="w-full max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="border-b border-gray-200 px-6 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Setup Your Forum Agent</h1>
+              <p className="text-sm text-gray-600 mt-1">Complete these 4 steps to get started with AI-powered Reddit & Quora replies</p>
+            </div>
+            <div className="text-right">
+              <p className="text-lg font-bold text-gray-900">{step}</p>
+              <p className="text-xs text-gray-500">of 4</p>
+            </div>
+          </div>
 
-        <div className="px-6 py-4 border-b border-gray-200">
+          {/* Progress bar */}
           <div className="flex gap-2">
-            {steps.map((s) => (
+            {[1, 2, 3, 4].map((s) => (
               <div
-                key={s.number}
+                key={s}
                 className={`flex-1 h-2 rounded-full transition ${
-                  s.number <= step ? "bg-orange-600" : "bg-gray-200"
+                  s <= step ? "bg-red-500" : "bg-gray-200"
                 }`}
               />
             ))}
           </div>
         </div>
 
-        <div className="p-6 min-h-[300px]">
+        {/* Content */}
+        <div className="px-6 py-8 min-h-[400px]">
           {step === 1 && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">Connect Your Account</h2>
-              <p className="text-sm text-gray-600">Enter your ClickSendAI email to get started</p>
-              <input
-                type="email"
-                placeholder="you@example.com"
-                value={platformEmail}
-                onChange={(e) => setPlatformEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              />
-            </div>
-          )}
+            <div className="max-w-xl space-y-6">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Step 1: Verify Your Account</h2>
+                <p className="text-sm text-gray-600">You're using your ClickSendAI account to run this forum agent. Your browser's Reddit and Quora logins are used to post replies—no API keys needed.</p>
+              </div>
 
-          {step === 2 && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">Connect Accounts</h2>
-              <p className="text-sm text-gray-600">Connect your Reddit and Quora accounts</p>
-              <div className="space-y-3">
-                <button
-                  onClick={() => setRedditConnected(!redditConnected)}
-                  className={`w-full px-4 py-3 rounded-lg border-2 font-medium transition ${
-                    redditConnected
-                      ? "border-orange-600 bg-orange-50 text-orange-600"
-                      : "border-gray-300 bg-white text-gray-600 hover:border-orange-600"
-                  }`}
-                >
-                  {redditConnected ? "✓ Reddit Connected" : "Connect Reddit"}
-                </button>
-                <button
-                  onClick={() => setQuoraConnected(!quoraConnected)}
-                  className={`w-full px-4 py-3 rounded-lg border-2 font-medium transition ${
-                    quoraConnected
-                      ? "border-orange-600 bg-orange-50 text-orange-600"
-                      : "border-gray-300 bg-white text-gray-600 hover:border-orange-600"
-                  }`}
-                >
-                  {quoraConnected ? "✓ Quora Connected" : "Connect Quora"}
-                </button>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-900">
+                  <strong>ℹ️</strong> Make sure you're logged into Reddit and Quora in this browser before continuing. The agent uses your existing login sessions to post replies.
+                </p>
+              </div>
+
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <p className="text-sm font-medium text-gray-900 mb-2">Your ClickSendAI Account</p>
+                <p className="text-sm text-gray-700 font-mono">you@example.com</p>
+                <p className="text-xs text-gray-500 mt-2">Plan: Growth (Forum Agent enabled)</p>
               </div>
             </div>
           )}
 
-          {step === 3 && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">Configure Agent</h2>
-              <p className="text-sm text-gray-600">Set up your agent's keywords and preferences</p>
+          {step === 2 && (
+            <div className="max-w-xl space-y-6">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Step 2: Connect Your Accounts</h2>
+                <p className="text-sm text-gray-600">Verify that you're logged into Reddit and Quora. The agent will use your browser sessions.</p>
+              </div>
+
               <div className="space-y-3">
+                <button
+                  onClick={() => setRedditConnected(!redditConnected)}
+                  className={`w-full px-4 py-4 rounded-lg border-2 font-medium transition text-left ${
+                    redditConnected
+                      ? "border-green-500 bg-green-50"
+                      : "border-gray-300 bg-white hover:border-gray-400"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className={`text-sm font-medium ${redditConnected ? "text-green-900" : "text-gray-900"}`}>
+                        {redditConnected ? "✓ Reddit" : "🔴 Reddit"}
+                      </p>
+                      <p className={`text-xs mt-1 ${redditConnected ? "text-green-700" : "text-gray-600"}`}>
+                        {redditConnected ? "Connected" : "Click to verify Reddit login"}
+                      </p>
+                    </div>
+                    {redditConnected && <span className="text-green-600">✓</span>}
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setQuoraConnected(!quoraConnected)}
+                  className={`w-full px-4 py-4 rounded-lg border-2 font-medium transition text-left ${
+                    quoraConnected
+                      ? "border-green-500 bg-green-50"
+                      : "border-gray-300 bg-white hover:border-gray-400"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className={`text-sm font-medium ${quoraConnected ? "text-green-900" : "text-gray-900"}`}>
+                        {quoraConnected ? "✓ Quora" : "⬛ Quora"}
+                      </p>
+                      <p className={`text-xs mt-1 ${quoraConnected ? "text-green-700" : "text-gray-600"}`}>
+                        {quoraConnected ? "Connected" : "Click to verify Quora login"}
+                      </p>
+                    </div>
+                    {quoraConnected && <span className="text-green-600">✓</span>}
+                  </div>
+                </button>
+              </div>
+
+              <p className="text-xs text-gray-500">At least one platform must be connected to continue.</p>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="max-w-xl space-y-6">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Step 3: Configure Your Agent</h2>
+                <p className="text-sm text-gray-600">Tell us about your business so the AI can generate relevant, on-brand replies.</p>
+              </div>
+
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-2">Niche</label>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">Your Niche / Business</label>
                   <input
                     type="text"
-                    placeholder="e.g., Fitness Coaching"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="e.g., Fitness Coaching, Online Community, SaaS"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-2">Keywords (comma separated)</label>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">What Keywords Should We Monitor?</label>
+                  <textarea
+                    placeholder="e.g., online community, fitness coaching, how to grow a membership, passive income, affiliate marketing..."
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">Your Website / Link to Promote</label>
                   <input
                     type="text"
-                    placeholder="keyword1, keyword2, keyword3"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="https://yoursite.com or https://www.skool.com/your-group"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -112,31 +162,49 @@ export default function Onboarding() {
           )}
 
           {step === 4 && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">All Set!</h2>
-              <p className="text-sm text-gray-600">Your forum agent is ready to start scanning and posting</p>
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-center">
-                <p className="text-sm font-medium text-emerald-700">Setup Complete</p>
-                <p className="text-xs text-emerald-600 mt-1">The agent will start scanning forums automatically</p>
+            <div className="max-w-xl space-y-6">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Step 4: You're Ready!</h2>
+                <p className="text-sm text-gray-600">Your forum agent is configured and ready to start scanning Reddit and Quora.</p>
+              </div>
+
+              <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center space-y-3">
+                <p className="text-2xl">✓</p>
+                <p className="text-lg font-bold text-green-900">Setup Complete</p>
+                <p className="text-sm text-green-700">
+                  Your agent will start scanning for relevant posts and generating replies based on your configuration.
+                </p>
+              </div>
+
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2">
+                <p className="text-sm font-medium text-gray-900">What happens next:</p>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  <li>✓ Agent scans Reddit and Quora every 5 minutes</li>
+                  <li>✓ Finds posts matching your keywords</li>
+                  <li>✓ Generates AI replies based on your tone & business</li>
+                  <li>✓ Posts replies (or saves as drafts for review)</li>
+                  <li>✓ Tracks clicks and leads back to your site</li>
+                </ul>
               </div>
             </div>
           )}
         </div>
 
+        {/* Navigation */}
         <div className="border-t border-gray-200 px-6 py-4 flex gap-3">
           <button
             onClick={handlePrevStep}
             disabled={step === 1}
-            className="flex-1 px-4 py-2 border border-gray-300 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 rounded-lg font-medium transition"
+            className="flex-1 px-4 py-2 border border-gray-300 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 font-medium rounded-lg transition"
           >
             Back
           </button>
           <button
             onClick={handleNextStep}
-            disabled={step === 4}
-            className="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition"
+            disabled={step === 2 && !redditConnected && !quoraConnected}
+            className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition"
           >
-            {step === 4 ? "Done" : "Next"}
+            {step === 4 ? "Go to Dashboard" : "Next"}
           </button>
         </div>
       </div>
