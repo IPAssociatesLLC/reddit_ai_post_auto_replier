@@ -1,0 +1,143 @@
+Architecture & Integration
+How the browser extension connects to your Cloudflare backend and Supabase database
+
+Standalone Module for Your Existing Platform
+This is a self-contained module that integrates into your existing ClickSendAI platform running on Cloudflare. It does NOT use Readdy's backend or a separate Supabase connection. The integration guide at INTEGRATION.md contains step-by-step instructions for your AI builder to wire this into your existing system without modifying any existing platform data.
+
+Safe — CREATE TABLE IF NOT EXISTS only
+Cloudflare + Supabase (your own)
+System Overview
+Data flow between browser extension and your platform
+
+The browser extension does NOT expose your API keys to users. Instead, it uses the user's existing browser cookies for authentication and acts as an automation layer between Reddit/Quora and your ClickSendAI dashboard. The AI generation happens on your Cloudflare backend, and all data is stored in your existing Supabase database.
+
+Security Note
+Reddit and Quora posting uses the user's existing browser login session (cookies). No API keys or passwords are stored in the extension. The extension only reads DOM content and simulates clicks — exactly what the user would do manually.
+
+Data Flow Diagram
+1
+User Configures Agent in ClickSendAI Dashboard
+
+The user fills out the Configuration tab with their URL, niche keywords, subreddits, reply tone, and posting preferences. This is saved to forum_agent_config table in Supabase.
+
+2
+Extension Fetches Config & Starts Scanning
+
+The Chrome extension background service worker reads the user's config from Supabase. It opens Reddit/Quora tabs in the background and runs content scripts that scan for posts matching the user's keywords.
+
+3
+Found Posts Sent to Cloudflare for AI Generation
+
+Matching posts are sent to your Cloudflare Worker at /api/forum/generate-reply. The worker calls your AI provider (OpenAI, Claude, etc.) with the user's business context, tone, and target URL to generate a humanlike reply.
+
+4
+Replies Stored in Supabase (Pending Approval)
+
+Generated replies are stored in forum_activity with status pending. The user sees these in their Dashboard's Activity Log tab. If auto-post is enabled, they skip to Step 5.
+
+5
+Extension Posts Reply via User's Browser Session
+
+The extension navigates to the post, finds the reply textarea, fills in the generated reply, and clicks submit. This uses the user's existing Reddit/Quora login cookies — no separate authentication needed. The status updates to posted.
+
+6
+Results Synced Back to Dashboard
+
+Posted replies, click counts, and upvotes are synced back to Supabase. The user's ClickSendAI Dashboard Activity Log tab shows all posts, replies, status, and performance metrics in real-time.
+
+System Components
+Chrome Extension
+User-facing browser add-on
+
+manifest.json
+
+Extension permissions, host permissions, content scripts, and background service worker registration.
+
+background.ts
+
+Service worker running scan engine, alarms, AI backend calls, Supabase storage, and content script coordination.
+
+reddit-content.ts
+
+DOM scanner for Reddit post listings. Extracts titles, URLs, and body text. Handles reply posting via DOM manipulation.
+
+quora-content.ts
+
+DOM scanner for Quora questions. Extracts question text, topics, and URLs. Handles answer posting via DOM manipulation.
+
+Cloudflare Backend (Your Existing Platform)
+API layer and AI orchestration
+
+forum-generate-reply.ts
+
+Receives post data, calls OpenAI/Claude with user's business context, returns humanlike reply. Validates user plan first.
+
+forum-plan-status.ts
+
+Returns user's plan status, daily reply limits, and Forum Agent add-on eligibility. Called before every scan.
+
+Supabase Database (Your Existing Database)
+Data storage and retrieval
+
+forum_agent_config
+
+User's agent settings: URL, keywords, subreddits, tone, auto-post, daily limits. RLS protected per user.
+
+forum_activity
+
+Every found post, generated reply, and status. The dashboard Activity Log tab reads from this table.
+
+forum_reply_stats
+
+Daily aggregated stats per platform. Dashboard Performance tab shows charts from this data.
+
+forum_scan_queue
+
+Background scan queue for pending/completed scans. Used by the service worker for state tracking.
+
+Integration Steps (For Your Existing Platform)
+1
+Run the SQL Schema
+
+Open the SQL file at supabase/schema/forum_agent.sql and run it in your Supabase SQL Editor. It creates 4 tables with RLS policies, indexes, views, and stored functions. This will NOT affect your existing tables.
+
+2
+Deploy Cloudflare Workers
+
+Deploy the two worker files in cloudflare-workers/ to your Cloudflare account. Set environment variables for OPENAI_API_KEY, SUPABASE_URL, and SUPABASE_SERVICE_ROLE_KEY.
+
+3
+Update Dashboard to Read forum_activity
+
+Your existing Dashboard Activity Log tab should query the forum_activity table instead of (or in addition to) any current data source. The table has columns: platform, post_title, post_url, generated_reply, status, clicks, posted_at.
+
+4
+Package the Chrome Extension
+
+Build the files in chrome-extension/ into a .zip and upload to the Chrome Web Store. Replace the placeholder URLs in background.ts with your actual Cloudflare Worker URL and Supabase URL.
+
+5
+Test the Flow
+
+Install the extension, log into your ClickSendAI dashboard, configure the agent, and let it run. Check the Activity Log tab in your dashboard to confirm posts are appearing with correct status.
+
+File Map
+chrome-extension/
+manifest.json — Extension permissions and metadata
+src/background.ts — Service worker (scan engine, AI calls, Supabase)
+src/reddit-content.ts — Reddit DOM scanner & reply poster
+src/quora-content.ts — Quora DOM scanner & reply poster
+supabase/schema/
+forum_agent.sql — Complete schema with RLS, indexes, views, triggers
+cloudflare-workers/
+forum-generate-reply.ts — AI reply generation worker
+forum-plan-status.ts — User plan validation worker
+src/pages/
+popup/page.tsx — Extension popup UI
+options/page.tsx — Settings page
+onboarding/page.tsx — First-time setup
+login/page.tsx — Sign in
+register/page.tsx — Sign up
+code/page.tsx — Source code viewer
+architecture/page.tsx — This page
+ClickSendAI Forum Agent Architecture Documentation v1.0
